@@ -40,12 +40,20 @@ dependencies {
     implementation(libs.constraintlayout)
 
     // Firebase
-    implementation(libs.firebase.auth)
-    implementation(libs.firebase.firestore)
+    implementation(platform("com.google.firebase:firebase-bom:32.7.0"))
+    implementation("com.google.firebase:firebase-auth")
+    implementation("com.google.firebase:firebase-firestore")
 
     // Google Play Services
-    implementation(libs.gms.location)
-    implementation(libs.maps)
+    implementation("com.google.android.gms:play-services-location:21.0.1")
+    implementation("com.google.android.gms:play-services-maps:18.2.0")
+
+    // Places API
+    implementation("com.google.android.libraries.places:places:3.3.0")
+
+    // Google Maps Services (incluye Directions API)
+    implementation("com.google.maps:google-maps-services:2.2.0")
+    implementation("org.slf4j:slf4j-simple:2.0.7")
 
     // Testing
     testImplementation(libs.junit)

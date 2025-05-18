@@ -135,10 +135,8 @@ public class PassengerMainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 // Por ahora solo mostramos un toast
-                Toast.makeText(PassengerMainActivity.this,
-                        "Función de solicitud de servicio próximamente",
-                        Toast.LENGTH_SHORT).show();
-                // TODO: Iniciar RequestRideActivity
+                Intent intent = new Intent(PassengerMainActivity.this, CurrentServiceActivity.class);
+                startActivity(intent);
             }
         });
 
