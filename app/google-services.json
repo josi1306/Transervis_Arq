@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "834039975141",
+    "project_id": "transervis-2c682",
+    "storage_bucket": "transervis-2c682.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:834039975141:android:0ea864a46035f65792180c",
+        "android_client_info": {
+          "package_name": "com.example.transervis"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD5pxaJBi1xEZRMHM84m51sGIgNlHJW_LY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

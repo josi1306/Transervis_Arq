@@ -1,0 +1,16 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <!-- Base application theme. -->
+    <style name="Base.Theme.Transervis" parent="Theme.Material3.DayNight.NoActionBar">
+        <!-- Customize your light theme here. -->
+        <!-- <item name="colorPrimary">@color/my_light_primary</item> -->
+    </style>
+
+    <style name="Theme.Transervis" parent="Base.Theme.Transervis" />
+
+    <!-- Estilo personalizado para el Switch -->
+    <style name="SwitchTheme" parent="Theme.AppCompat.Light">
+        <item name="colorControlActivated">@color/white</item>
+        <item name="colorSwitchThumbNormal">@color/white</item>
+        <item name="android:colorForeground">@color/white</item>
+    </style>
+</resources>

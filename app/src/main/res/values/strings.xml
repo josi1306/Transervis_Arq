@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">Transervis</string>
+    <!-- Reemplaza este valor con tu clave real de Google Maps API -->
+    <string name="google_maps_key">AIzaSyCwfzCitP04-i8j3Xy66cIMuKY75nZ9X6U</string>
+</resources>

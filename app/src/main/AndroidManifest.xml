@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <!-- Permisos necesarios -->
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+
+    <application
+        android:allowBackup="true"
+        android:dataExtractionRules="@xml/data_extraction_rules"
+        android:fullBackupContent="@xml/backup_rules"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.Transervis"
+        tools:targetApi="31">
+
+        <!-- Actividad de selección de tipo de usuario (launcher) -->
+        <activity
+            android:name=".TypeSelection"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
+                <category android:name="android.intent.category.LAUNCHER"/>
+            </intent-filter>
+        </activity>
+
+        <!-- Actividad de login para pasajeros -->
+        <activity
+            android:name=".LoginActivity"
+            android:exported="false"/>
+
+        <!-- Actividad de login para conductores -->
+        <activity
+            android:name=".LoginConductor"
+            android:exported="false" />
+
+        <!-- Actividad de registro -->
+        <activity
+            android:name=".SignUpActivity"
+            android:exported="false"/>
+
+        <!-- Actividad principal anterior -->
+        <activity
+            android:name=".MainActivity"
+            android:exported="false" />
+
+        <!-- Actividad principal para pasajeros -->
+        <activity
+            android:name=".PassengerMainActivity"
+            android:exported="false" />
+
+        <!-- Actividad principal para conductores -->
+        <activity
+            android:name=".DriverMainActivity"
+            android:exported="false" />
+
+        <!-- Actividad para administradores -->
+        <activity
+            android:name=".AdminDashboardActivity"
+            android:exported="false" />
+
+        <!-- Actividad para servicios actuales -->
+        <activity
+            android:name=".CurrentServiceActivity"
+            android:exported="false" />
+
+        <!-- Actividad para solicitar servicios -->
+        <activity
+            android:name=".RequestServiceActivity"
+            android:exported="false" />
+
+        <!-- Actividad para ver disponibilidad -->
+        <activity
+            android:name=".ViewAvailabilityActivity"
+            android:exported="false" />
+
+        <!-- Metadatos para Google Maps API -->
+        <meta-data
+            android:name="com.google.android.geo.API_KEY"
+            android:value="@string/google_maps_key" />
+
+    </application>
+
+</manifest>
