@@ -1,5 +1,6 @@
 package com.example.transervis;
 
+import android.util.Log;
 import android.Manifest;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -134,9 +135,15 @@ public class PassengerMainActivity extends AppCompatActivity {
         requestRideCard.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                // Por ahora solo mostramos un toast
-                Intent intent = new Intent(PassengerMainActivity.this, CurrentServiceActivity.class);
-                startActivity(intent);
+                try {
+                    Intent intent = new Intent(PassengerMainActivity.this, RequestServiceActivity.class);
+                    startActivity(intent);
+                } catch (Exception e) {
+                    Log.e("PassengerMainActivity", "Error al iniciar RequestServiceActivity", e);
+                    Toast.makeText(PassengerMainActivity.this,
+                            "Error al abrir pantalla de solicitud: " + e.getMessage(),
+                            Toast.LENGTH_SHORT).show();
+                }
             }
         });
 

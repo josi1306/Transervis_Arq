@@ -110,69 +110,235 @@ public class RequestServiceActivity extends AppCompatActivity implements OnMapRe
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_request_service);
-
         try {
-            // Inicializar Firebase Auth
-            auth = FirebaseAuth.getInstance();
+            super.onCreate(savedInstanceState);
+            setContentView(R.layout.activity_request_service);
 
-            // Verificar si el usuario está autenticado
-            if (auth.getCurrentUser() == null) {
-                Toast.makeText(this, "Sesión expirada, por favor inicia sesión nuevamente", Toast.LENGTH_SHORT).show();
-                startActivity(new Intent(this, LoginActivity.class));
+            Log.d(TAG, "Iniciando RequestServiceActivity");
+
+            // Inicializar Firebase Auth con manejo de excepciones
+            try {
+                auth = FirebaseAuth.getInstance();
+
+                // Verificar si el usuario está autenticado
+                if (auth.getCurrentUser() == null) {
+                    Toast.makeText(this, "Sesión expirada, por favor inicia sesión nuevamente", Toast.LENGTH_SHORT).show();
+                    startActivity(new Intent(this, LoginActivity.class));
+                    finish();
+                    return;
+                }
+            } catch (Exception e) {
+                Log.e(TAG, "Error inicializando Firebase Auth", e);
+                Toast.makeText(this, "Error de autenticación: " + e.getMessage(), Toast.LENGTH_LONG).show();
                 finish();
                 return;
             }
 
-            // Inicializar FirebaseFirestore de manera segura
+            // Inicializar FirebaseFirestore con manejo de excepciones
             try {
                 db = FirebaseFirestore.getInstance();
             } catch (Exception e) {
+                Log.e(TAG, "Error inicializando Firestore", e);
                 Toast.makeText(this, "Error al conectar con la base de datos: " + e.getMessage(), Toast.LENGTH_LONG).show();
-                Log.e("RequestService", "Error inicializando Firestore", e);
                 // Continuar sin Firestore, otras funcionalidades pueden seguir trabajando
             }
 
-            // Inicializar vistas
-            initializeViews();
+            // Inicializar vistas con manejo de excepciones
+            try {
+                initializeViews();
+            } catch (Exception e) {
+                Log.e(TAG, "Error inicializando vistas", e);
+                Toast.makeText(this, "Error al inicializar la interfaz: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                finish();
+                return;
+            }
 
-            // Configurar listeners
-            setupListeners();
+            // Configurar listeners con manejo de excepciones
+            try {
+                setupListeners();
+            } catch (Exception e) {
+                Log.e(TAG, "Error configurando listeners", e);
+                Toast.makeText(this, "Error configurando la interfaz: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+            }
 
             // Inicializar servicios de ubicación con manejo de excepciones
             try {
                 fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
-                checkLocationPermissions();
             } catch (Exception e) {
+                Log.e(TAG, "Error inicializando servicios de ubicación", e);
                 Toast.makeText(this, "Error al inicializar servicios de ubicación: " + e.getMessage(), Toast.LENGTH_LONG).show();
-                Log.e("RequestService", "Error inicializando servicios de ubicación", e);
             }
+
+            // Verificar permisos de ubicación
+            checkLocationPermissions();
+
+            // Inicializar Places API con manejo de excepciones
+            try {
+                if (!Places.isInitialized()) {
+                    Places.initialize(getApplicationContext(), getString(R.string.google_maps_key));
+                }
+                placesClient = Places.createClient(this);
+
+                // Configurar adaptadores de autocompletado
+                pickupAdapter = new PlacesAutoCompleteAdapter(this, placesClient);
+                destinationAdapter = new PlacesAutoCompleteAdapter(this, placesClient);
+
+                if (pickupLocationEditText != null) {
+                    pickupLocationEditText.setAdapter(pickupAdapter);
+                }
+
+                if (destinationEditText != null) {
+                    destinationEditText.setAdapter(destinationAdapter);
+                }
+            } catch (Exception e) {
+                Log.e(TAG, "Error inicializando Places API", e);
+                Toast.makeText(this, "Error al inicializar servicios de mapas: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+            }
+
+            // Inicializar mapa con manejo de excepciones
+            try {
+                // IMPORTANTE: Verificar que el ID del fragmento sea correcto
+                SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
+                        .findFragmentById(R.id.mapFragment);
+
+                if (mapFragment == null) {
+                    Log.e(TAG, "Error: mapFragment es nulo. Verificar ID en XML.");
+                    Toast.makeText(this, "Error al inicializar el mapa. Contacte al soporte.", Toast.LENGTH_LONG).show();
+                } else {
+                    mapFragment.getMapAsync(this);
+                }
+            } catch (Exception e) {
+                Log.e(TAG, "Error inicializando el mapa", e);
+                Toast.makeText(this, "Error al inicializar el mapa: " + e.getMessage(), Toast.LENGTH_LONG).show();
+            }
+
+            // Inicializar GeoApiContext para Directions API
+            try {
+                geoApiContext = new GeoApiContext.Builder()
+                        .apiKey(getString(R.string.google_maps_key))
+                        .connectTimeout(10, TimeUnit.SECONDS)
+                        .readTimeout(10, TimeUnit.SECONDS)
+                        .writeTimeout(10, TimeUnit.SECONDS)
+                        .build();
+            } catch (Exception e) {
+                Log.e(TAG, "Error inicializando GeoApiContext", e);
+                Toast.makeText(this, "Error inicializando servicios de rutas: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+            }
+
         } catch (Exception e) {
-            // Capturar cualquier excepción no controlada
-            Log.e("RequestService", "Error general en onCreate", e);
+            // Capturar cualquier excepción no controlada en onCreate
+            Log.e(TAG, "Error general en onCreate", e);
             Toast.makeText(this, "Ha ocurrido un error inesperado: " + e.getMessage(), Toast.LENGTH_LONG).show();
+            finish();
         }
     }
 
     private void initializeViews() {
         try {
-            // Inicializar todas las vistas aquí
-            // Ejemplo:
-            // pickupLocationEditText = findViewById(R.id.pickupLocationEditText);
-            // Asegúrate de manejar posibles excepciones
+            // Inicializar todas las vistas
+            pickupLocationEditText = findViewById(R.id.pickupLocationEditText);
+            destinationEditText = findViewById(R.id.destinationEditText);
+            calculateRouteButton = findViewById(R.id.calculateRouteButton);
+            confirmServiceButton = findViewById(R.id.confirmServiceButton);
+            cancelServiceButton = findViewById(R.id.cancelServiceButton);
+            distanceTextView = findViewById(R.id.distanceTextView);
+            durationTextView = findViewById(R.id.durationTextView);
+            priceTextView = findViewById(R.id.priceTextView);
+            driverNameTextView = findViewById(R.id.driverNameTextView);
+            vehicleInfoTextView = findViewById(R.id.vehicleInfoTextView);
+            arrivalTimeTextView = findViewById(R.id.arrivalTimeTextView);
+            driverInfoLayout = findViewById(R.id.driverInfoLayout);
+            progressBar = findViewById(R.id.progressBar);
+            driverLoadingProgressBar = findViewById(R.id.driverLoadingProgressBar);
+            serviceInfoCardView = findViewById(R.id.serviceInfoCardView);
+            errorTextView = findViewById(R.id.errorTextView);
+
         } catch (Exception e) {
             Log.e("RequestService", "Error inicializando vistas", e);
+            Toast.makeText(this, "Error inicializando la interfaz: " + e.getMessage(), Toast.LENGTH_SHORT).show();
         }
     }
 
     private void setupListeners() {
         try {
-            // Configurar listeners aquí
-            // Ejemplo:
-            // requestButton.setOnClickListener(v -> requestRide());
+            // Configurar listeners
+            if (calculateRouteButton != null) {
+                calculateRouteButton.setOnClickListener(v -> calculateRoute());
+            }
+
+            if (confirmServiceButton != null) {
+                confirmServiceButton.setOnClickListener(v -> confirmService());
+            }
+
+            if (cancelServiceButton != null) {
+                cancelServiceButton.setOnClickListener(v -> cancelService());
+            }
+
+            // Configurar listeners para autocompletado
+            if (pickupLocationEditText != null) {
+                pickupLocationEditText.setOnItemClickListener((parent, view, position, id) -> {
+                    AutocompletePrediction prediction = pickupAdapter.getItem(position);
+                    if (prediction != null) {
+                        fetchPlaceAndUpdateOrigin(prediction);
+                    }
+                });
+            }
+
+            if (destinationEditText != null) {
+                destinationEditText.setOnItemClickListener((parent, view, position, id) -> {
+                    AutocompletePrediction prediction = destinationAdapter.getItem(position);
+                    if (prediction != null) {
+                        fetchPlaceAndUpdateDestination(prediction);
+                    }
+                });
+            }
+
         } catch (Exception e) {
             Log.e("RequestService", "Error configurando listeners", e);
+        }
+    }
+
+    private void fetchPlaceAndUpdateOrigin(AutocompletePrediction prediction) {
+        if (prediction == null || prediction.getPlaceId() == null) return;
+
+        try {
+            List<Place.Field> placeFields = Arrays.asList(Place.Field.LAT_LNG, Place.Field.ADDRESS);
+            FetchPlaceRequest request = FetchPlaceRequest.builder(prediction.getPlaceId(), placeFields).build();
+
+            placesClient.fetchPlace(request).addOnSuccessListener((response) -> {
+                Place place = response.getPlace();
+                if (place.getLatLng() != null) {
+                    originLatLng = place.getLatLng();
+                    originAddress = place.getAddress();
+                    updateMapWithMarkers();
+                }
+            }).addOnFailureListener((exception) -> {
+                Log.e(TAG, "Error fetching place details", exception);
+            });
+        } catch (Exception e) {
+            Log.e(TAG, "Error in fetchPlaceAndUpdateOrigin", e);
+        }
+    }
+
+    private void fetchPlaceAndUpdateDestination(AutocompletePrediction prediction) {
+        if (prediction == null || prediction.getPlaceId() == null) return;
+
+        try {
+            List<Place.Field> placeFields = Arrays.asList(Place.Field.LAT_LNG, Place.Field.ADDRESS);
+            FetchPlaceRequest request = FetchPlaceRequest.builder(prediction.getPlaceId(), placeFields).build();
+
+            placesClient.fetchPlace(request).addOnSuccessListener((response) -> {
+                Place place = response.getPlace();
+                if (place.getLatLng() != null) {
+                    destinationLatLng = place.getLatLng();
+                    destinationAddress = place.getAddress();
+                    updateMapWithMarkers();
+                }
+            }).addOnFailureListener((exception) -> {
+                Log.e(TAG, "Error fetching place details", exception);
+            });
+        } catch (Exception e) {
+            Log.e(TAG, "Error in fetchPlaceAndUpdateDestination", e);
         }
     }
 
@@ -192,27 +358,31 @@ public class RequestServiceActivity extends AppCompatActivity implements OnMapRe
         }
     }
 
-    private void getLastLocation() {
+    @Override
+    public void onMapReady(GoogleMap googleMap) {
         try {
+            Log.d(TAG, "Mapa listo");
+            mMap = googleMap;
+
+            if (mMap == null) {
+                Log.e(TAG, "Error: googleMap es nulo en onMapReady");
+                return;
+            }
+
+            // Configurar mapa
+            mMap.getUiSettings().setZoomControlsEnabled(true);
+            mMap.getUiSettings().setMyLocationButtonEnabled(true);
+
+            // Habilitar mi ubicación si hay permiso
             if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) ==
                     PackageManager.PERMISSION_GRANTED) {
-                fusedLocationClient.getLastLocation()
-                        .addOnSuccessListener(this, location -> {
-                            if (location != null) {
-                                // Usar la ubicación
-                            } else {
-                                Toast.makeText(this, "No se pudo obtener la ubicación actual",
-                                        Toast.LENGTH_SHORT).show();
-                            }
-                        })
-                        .addOnFailureListener(e -> {
-                            Toast.makeText(this, "Error al obtener la ubicación: " + e.getMessage(),
-                                    Toast.LENGTH_SHORT).show();
-                            Log.e("RequestService", "Error al obtener ubicación", e);
-                        });
+                mMap.setMyLocationEnabled(true);
+                getLastLocation();
             }
+
         } catch (Exception e) {
-            Log.e("RequestService", "Error obteniendo última ubicación", e);
+            Log.e(TAG, "Error en onMapReady", e);
+            Toast.makeText(this, "Error al inicializar el mapa: " + e.getMessage(), Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -594,7 +764,7 @@ public class RequestServiceActivity extends AppCompatActivity implements OnMapRe
                         // Actualizar UI para mostrar estado de espera de conductor
                         updateUIForWaitingDriver();
 
-                        // Escuchar actualizaciones del servicio (para cuando un conductor lo acepte)
+// Escuchar actualizaciones del servicio (para cuando un conductor lo acepte)
                         listenForServiceUpdates();
 
                         // Simulación de conductor aceptando el servicio (para fines de demostración)
