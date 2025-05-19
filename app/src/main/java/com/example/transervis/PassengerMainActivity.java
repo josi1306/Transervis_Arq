@@ -151,10 +151,15 @@ public class PassengerMainActivity extends AppCompatActivity {
         viewAvailabilityCard.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Toast.makeText(PassengerMainActivity.this,
-                        "Ver vehículos disponibles próximamente",
-                        Toast.LENGTH_SHORT).show();
-                // TODO: Iniciar ViewAvailabilityActivity
+                try {
+                    Intent intent = new Intent(PassengerMainActivity.this, ViewAvailabilityActivity.class);
+                    startActivity(intent);
+                } catch (Exception e) {
+                    Log.e("PassengerMainActivity", "Error al iniciar ViewAvailabilityActivity", e);
+                    Toast.makeText(PassengerMainActivity.this,
+                            "Error al mostrar disponibilidad: " + e.getMessage(),
+                            Toast.LENGTH_SHORT).show();
+                }
             }
         });
 

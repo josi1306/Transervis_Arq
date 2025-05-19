@@ -26,6 +26,13 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationServices;
+import com.google.firebase.firestore.GeoPoint;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
+
 import android.util.Log;
 
 
@@ -160,33 +167,38 @@ public class DriverMainActivity extends AppCompatActivity {
 
         String userId = authService.getCurrentUser().getUid();
 
-        // Verificar si el documento existe
-        db.collection("driver_locations").document(userId).get()
-                .addOnCompleteListener(task -> {
-                    if (task.isSuccessful()) {
-                        DocumentSnapshot document = task.getResult();
+        // Obtener ubicación actual para actualizar junto con disponibilidad
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
+                == PackageManager.PERMISSION_GRANTED) {
 
-                        if (document.exists()) {
-                            // Actualizar el documento existente
-                            db.collection("driver_locations").document(userId)
-                                    .update("isAvailable", available);
-                        } else {
-                            // Crear un nuevo documento con valores por defecto
-                            Map<String, Object> driverLocation = new HashMap<>();
-                            driverLocation.put("conductorId", userId);
-                            driverLocation.put("isAvailable", available);
-                            driverLocation.put("heading", 0);
-                            driverLocation.put("location", new GeoPoint(0, 0));
-                            driverLocation.put("speed", 0);
-                            driverLocation.put("battery", 100);
-                            driverLocation.put("timestamp", new Date());
-                            driverLocation.put("vehicleId", "");
+            FusedLocationProviderClient fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
+            fusedLocationClient.getLastLocation()
+                    .addOnSuccessListener(this, location -> {
+                        Map<String, Object> updates = new HashMap<>();
+                        updates.put("isAvailable", available);
 
-                            db.collection("driver_locations").document(userId)
-                                    .set(driverLocation);
+                        // Si tenemos ubicación, actualizar también
+                        if (location != null) {
+                            updates.put("location", new GeoPoint(location.getLatitude(), location.getLongitude()));
+                            updates.put("timestamp", new Date());
                         }
-                    }
-                });
+
+                        // Actualizar Firestore
+                        db.collection("driver_locations").document(userId)
+                                .set(updates, com.google.firebase.firestore.SetOptions.merge())
+                                .addOnSuccessListener(aVoid -> Log.d("DriverMain", "Disponibilidad actualizada"))
+                                .addOnFailureListener(e -> Log.e("DriverMain", "Error actualizando disponibilidad", e));
+                    });
+        } else {
+            // Si no hay permisos, actualizar solo la disponibilidad
+            Map<String, Object> updates = new HashMap<>();
+            updates.put("isAvailable", available);
+            updates.put("timestamp", new Date());
+
+            db.collection("driver_locations").document(userId)
+                    .set(updates, com.google.firebase.firestore.SetOptions.merge())
+                    .addOnFailureListener(e -> Log.e("DriverMain", "Error actualizando disponibilidad", e));
+        }
     }
 
     private void setupListeners() {
@@ -194,26 +206,42 @@ public class DriverMainActivity extends AppCompatActivity {
         availabilitySwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
             isAvailable = isChecked;
             updateStatusText();
-            updateDriverAvailability(isAvailable);
+            updateDriverAvailability(isChecked);
 
             if (isChecked) {
-                Toast.makeText(this, "Ahora estás disponible", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "Ahora estás disponible para recibir solicitudes", Toast.LENGTH_SHORT).show();
             } else {
-                Toast.makeText(this, "Ya no estás disponible", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "Ya no estás disponible para recibir solicitudes", Toast.LENGTH_SHORT).show();
             }
         });
 
 // Servicio actual
         currentServiceCard.setOnClickListener(view -> {
             try {
+                // Verificar permisos de ubicación antes de iniciar la actividad
+                if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
+                        != PackageManager.PERMISSION_GRANTED) {
+                    // Si no tiene permisos, solicitarlos
+                    ActivityCompat.requestPermissions(this,
+                            new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
+                            LOCATION_PERMISSION_REQUEST_CODE);
+                    // Mostrar mensaje al usuario
+                    Toast.makeText(this,
+                            "Se requieren permisos de ubicación para esta funcionalidad",
+                            Toast.LENGTH_SHORT).show();
+                    return;
+                }
 
+                // Si tiene permisos, iniciar la actividad
                 Intent intent = new Intent(DriverMainActivity.this, CurrentServiceActivity.class);
                 startActivity(intent);
+
             } catch (Exception e) {
-                Log.e("DriverMainActivity", "Error al iniciar la vista", e);
+                // Registro detallado del error
+                Log.e("DriverMainActivity", "Error al iniciar CurrentServiceActivity", e);
                 Toast.makeText(DriverMainActivity.this,
-                        "Error al abrir pantalla de solicitud: " + e.getMessage(),
-                        Toast.LENGTH_SHORT).show();
+                        "Error al abrir pantalla de servicio: " + e.getMessage(),
+                        Toast.LENGTH_LONG).show();
             }
         });
 
