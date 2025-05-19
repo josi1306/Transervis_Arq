@@ -9,6 +9,7 @@ import android.location.Geocoder;
 import android.location.Location;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
@@ -27,6 +28,9 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
 import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationCallback;
+import com.google.android.gms.location.LocationRequest;
+import com.google.android.gms.location.LocationResult;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -39,7 +43,9 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.android.libraries.places.api.Places;
 import com.google.android.libraries.places.api.model.AutocompletePrediction;
+import com.google.android.libraries.places.api.model.LocationBias;
 import com.google.android.libraries.places.api.model.Place;
+import com.google.android.libraries.places.api.model.RectangularBounds;
 import com.google.android.libraries.places.api.net.FetchPlaceRequest;
 import com.google.android.libraries.places.api.net.PlacesClient;
 import com.google.firebase.auth.FirebaseAuth;
@@ -66,6 +72,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 public class RequestServiceActivity extends AppCompatActivity implements OnMapReadyCallback {
 
@@ -108,162 +115,214 @@ public class RequestServiceActivity extends AppCompatActivity implements OnMapRe
     private boolean serviceConfirmed = false;
     private PlacesAutoCompleteAdapter pickupAdapter, destinationAdapter;
 
+    private LinearLayout searchPanelContainer;
+    private FloatingActionButton toggleSearchPanelButton;
+    private boolean isSearchPanelVisible = true;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         try {
             super.onCreate(savedInstanceState);
             setContentView(R.layout.activity_request_service);
 
-            Log.d(TAG, "Iniciando RequestServiceActivity");
+            Log.d(TAG, "RequestServiceActivity onCreate - inicio");
 
-            // Inicializar Firebase Auth con manejo de excepciones
-            try {
-                auth = FirebaseAuth.getInstance();
+            // Inicializar Firebase Auth
+            auth = FirebaseAuth.getInstance();
 
-                // Verificar si el usuario está autenticado
-                if (auth.getCurrentUser() == null) {
-                    Toast.makeText(this, "Sesión expirada, por favor inicia sesión nuevamente", Toast.LENGTH_SHORT).show();
-                    startActivity(new Intent(this, LoginActivity.class));
-                    finish();
-                    return;
-                }
-            } catch (Exception e) {
-                Log.e(TAG, "Error inicializando Firebase Auth", e);
-                Toast.makeText(this, "Error de autenticación: " + e.getMessage(), Toast.LENGTH_LONG).show();
+            // Verificar si el usuario está autenticado
+            if (auth.getCurrentUser() == null) {
+                Toast.makeText(this, "Sesión expirada, por favor inicia sesión nuevamente", Toast.LENGTH_SHORT).show();
+                startActivity(new Intent(this, LoginActivity.class));
                 finish();
                 return;
             }
 
-            // Inicializar FirebaseFirestore con manejo de excepciones
-            try {
-                db = FirebaseFirestore.getInstance();
-            } catch (Exception e) {
-                Log.e(TAG, "Error inicializando Firestore", e);
-                Toast.makeText(this, "Error al conectar con la base de datos: " + e.getMessage(), Toast.LENGTH_LONG).show();
-                // Continuar sin Firestore, otras funcionalidades pueden seguir trabajando
+            // Inicializar FirebaseFirestore
+            db = FirebaseFirestore.getInstance();
+
+            // Inicializar vistas
+            initializeViews();
+
+            // Inicializar Places API
+            initializePlacesAPI();
+
+            // Inicializar mapa
+            SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
+                    .findFragmentById(R.id.mapFragment);
+            if (mapFragment != null) {
+                mapFragment.getMapAsync(this);
             }
 
-            // Inicializar vistas con manejo de excepciones
-            try {
-                initializeViews();
-            } catch (Exception e) {
-                Log.e(TAG, "Error inicializando vistas", e);
-                Toast.makeText(this, "Error al inicializar la interfaz: " + e.getMessage(), Toast.LENGTH_LONG).show();
-                finish();
-                return;
-            }
-
-            // Configurar listeners con manejo de excepciones
-            try {
-                setupListeners();
-            } catch (Exception e) {
-                Log.e(TAG, "Error configurando listeners", e);
-                Toast.makeText(this, "Error configurando la interfaz: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-            }
-
-            // Inicializar servicios de ubicación con manejo de excepciones
-            try {
-                fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
-            } catch (Exception e) {
-                Log.e(TAG, "Error inicializando servicios de ubicación", e);
-                Toast.makeText(this, "Error al inicializar servicios de ubicación: " + e.getMessage(), Toast.LENGTH_LONG).show();
-            }
+            // Inicializar servicios de ubicación
+            fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
 
             // Verificar permisos de ubicación
             checkLocationPermissions();
 
-            // Inicializar Places API con manejo de excepciones
-            try {
-                if (!Places.isInitialized()) {
-                    Places.initialize(getApplicationContext(), getString(R.string.google_maps_key));
-                }
-                placesClient = Places.createClient(this);
-
-                // Configurar adaptadores de autocompletado
-                pickupAdapter = new PlacesAutoCompleteAdapter(this, placesClient);
-                destinationAdapter = new PlacesAutoCompleteAdapter(this, placesClient);
-
-                if (pickupLocationEditText != null) {
-                    pickupLocationEditText.setAdapter(pickupAdapter);
-                }
-
-                if (destinationEditText != null) {
-                    destinationEditText.setAdapter(destinationAdapter);
-                }
-            } catch (Exception e) {
-                Log.e(TAG, "Error inicializando Places API", e);
-                Toast.makeText(this, "Error al inicializar servicios de mapas: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-            }
-
-            // Inicializar mapa con manejo de excepciones
-            try {
-                // IMPORTANTE: Verificar que el ID del fragmento sea correcto
-                SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
-                        .findFragmentById(R.id.mapFragment);
-
-                if (mapFragment == null) {
-                    Log.e(TAG, "Error: mapFragment es nulo. Verificar ID en XML.");
-                    Toast.makeText(this, "Error al inicializar el mapa. Contacte al soporte.", Toast.LENGTH_LONG).show();
-                } else {
-                    mapFragment.getMapAsync(this);
-                }
-            } catch (Exception e) {
-                Log.e(TAG, "Error inicializando el mapa", e);
-                Toast.makeText(this, "Error al inicializar el mapa: " + e.getMessage(), Toast.LENGTH_LONG).show();
-            }
-
             // Inicializar GeoApiContext para Directions API
-            try {
-                geoApiContext = new GeoApiContext.Builder()
-                        .apiKey(getString(R.string.google_maps_key))
-                        .connectTimeout(10, TimeUnit.SECONDS)
-                        .readTimeout(10, TimeUnit.SECONDS)
-                        .writeTimeout(10, TimeUnit.SECONDS)
-                        .build();
-            } catch (Exception e) {
-                Log.e(TAG, "Error inicializando GeoApiContext", e);
-                Toast.makeText(this, "Error inicializando servicios de rutas: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-            }
+            geoApiContext = new GeoApiContext.Builder()
+                    .apiKey(getString(R.string.google_maps_key))
+                    .connectTimeout(10, TimeUnit.SECONDS)
+                    .readTimeout(10, TimeUnit.SECONDS)
+                    .writeTimeout(10, TimeUnit.SECONDS)
+                    .build();
 
+            // Configurar listeners
+            setupListeners();
+
+            Log.d(TAG, "RequestServiceActivity onCreate completado");
         } catch (Exception e) {
-            // Capturar cualquier excepción no controlada en onCreate
-            Log.e(TAG, "Error general en onCreate", e);
-            Toast.makeText(this, "Ha ocurrido un error inesperado: " + e.getMessage(), Toast.LENGTH_LONG).show();
-            finish();
+            Log.e(TAG, "Error en onCreate", e);
+            Toast.makeText(this, "Error al inicializar: " + e.getMessage(), Toast.LENGTH_LONG).show();
         }
     }
 
     private void initializeViews() {
         try {
-            // Inicializar todas las vistas
-            pickupLocationEditText = findViewById(R.id.pickupLocationEditText);
-            destinationEditText = findViewById(R.id.destinationEditText);
-            calculateRouteButton = findViewById(R.id.calculateRouteButton);
-            confirmServiceButton = findViewById(R.id.confirmServiceButton);
-            cancelServiceButton = findViewById(R.id.cancelServiceButton);
-            distanceTextView = findViewById(R.id.distanceTextView);
-            durationTextView = findViewById(R.id.durationTextView);
-            priceTextView = findViewById(R.id.priceTextView);
-            driverNameTextView = findViewById(R.id.driverNameTextView);
-            vehicleInfoTextView = findViewById(R.id.vehicleInfoTextView);
-            arrivalTimeTextView = findViewById(R.id.arrivalTimeTextView);
-            driverInfoLayout = findViewById(R.id.driverInfoLayout);
-            progressBar = findViewById(R.id.progressBar);
-            driverLoadingProgressBar = findViewById(R.id.driverLoadingProgressBar);
-            serviceInfoCardView = findViewById(R.id.serviceInfoCardView);
-            errorTextView = findViewById(R.id.errorTextView);
+            // Imprimir log para debugging
+            Log.d(TAG, "Inicializando vistas");
 
+            // Obtener referencias a las vistas
+            pickupLocationEditText = findViewById(R.id.pickupLocationEditText);
+            if (pickupLocationEditText == null) {
+                Log.e(TAG, "pickupLocationEditText no encontrado en el layout");
+            }
+
+            destinationEditText = findViewById(R.id.destinationEditText);
+            if (destinationEditText == null) {
+                Log.e(TAG, "destinationEditText no encontrado en el layout");
+            }
+
+            calculateRouteButton = findViewById(R.id.calculateRouteButton);
+            if (calculateRouteButton == null) {
+                Log.e(TAG, "calculateRouteButton no encontrado en el layout");
+            }
+
+            confirmServiceButton = findViewById(R.id.confirmServiceButton);
+            if (confirmServiceButton == null) {
+                Log.e(TAG, "confirmServiceButton no encontrado en el layout");
+            }
+
+            cancelServiceButton = findViewById(R.id.cancelServiceButton);
+            if (cancelServiceButton == null) {
+                Log.e(TAG, "cancelServiceButton no encontrado en el layout");
+            }
+
+            distanceTextView = findViewById(R.id.distanceTextView);
+            if (distanceTextView == null) {
+                Log.e(TAG, "distanceTextView no encontrado en el layout");
+            }
+
+            durationTextView = findViewById(R.id.durationTextView);
+            if (durationTextView == null) {
+                Log.e(TAG, "durationTextView no encontrado en el layout");
+            }
+
+            priceTextView = findViewById(R.id.priceTextView);
+            if (priceTextView == null) {
+                Log.e(TAG, "priceTextView no encontrado en el layout");
+            }
+
+            driverNameTextView = findViewById(R.id.driverNameTextView);
+            if (driverNameTextView == null) {
+                Log.e(TAG, "driverNameTextView no encontrado en el layout");
+            }
+
+            vehicleInfoTextView = findViewById(R.id.vehicleInfoTextView);
+            if (vehicleInfoTextView == null) {
+                Log.e(TAG, "vehicleInfoTextView no encontrado en el layout");
+            }
+
+            arrivalTimeTextView = findViewById(R.id.arrivalTimeTextView);
+            if (arrivalTimeTextView == null) {
+                Log.e(TAG, "arrivalTimeTextView no encontrado en el layout");
+            }
+
+            driverInfoLayout = findViewById(R.id.driverInfoLayout);
+            if (driverInfoLayout == null) {
+                Log.e(TAG, "driverInfoLayout no encontrado en el layout");
+            }
+
+            progressBar = findViewById(R.id.progressBar);
+            if (progressBar == null) {
+                Log.e(TAG, "progressBar no encontrado en el layout");
+            }
+
+            driverLoadingProgressBar = findViewById(R.id.driverLoadingProgressBar);
+            if (driverLoadingProgressBar == null) {
+                Log.e(TAG, "driverLoadingProgressBar no encontrado en el layout");
+            }
+
+            serviceInfoCardView = findViewById(R.id.serviceInfoCardView);
+            if (serviceInfoCardView == null) {
+                Log.e(TAG, "serviceInfoCardView no encontrado en el layout");
+            }
+
+            errorTextView = findViewById(R.id.errorTextView);
+            if (errorTextView == null) {
+                Log.e(TAG, "errorTextView no encontrado en el layout");
+            }
+
+            // Inicializar vistas para el panel de búsqueda
+            searchPanelContainer = findViewById(R.id.searchPanelContainer);
+            toggleSearchPanelButton = findViewById(R.id.toggleSearchPanelButton);
+
+            Log.d(TAG, "Vistas inicializadas correctamente");
         } catch (Exception e) {
-            Log.e("RequestService", "Error inicializando vistas", e);
-            Toast.makeText(this, "Error inicializando la interfaz: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+            Log.e(TAG, "Error inicializando vistas", e);
+            throw e; // Re-lanzar la excepción para que se maneje en el nivel superior
         }
+    }
+
+    private void initializePlacesAPI() {
+        try {
+            if (!Places.isInitialized()) {
+                Places.initialize(getApplicationContext(), getString(R.string.google_maps_key));
+            }
+            placesClient = Places.createClient(this);
+
+            // Crear adaptadores de autocompletado mejorados
+            pickupAdapter = new PlacesAutoCompleteAdapter(this, placesClient, getColombiaLocationBias());
+            destinationAdapter = new PlacesAutoCompleteAdapter(this, placesClient, getColombiaLocationBias());
+
+            if (pickupLocationEditText != null) {
+                pickupLocationEditText.setAdapter(pickupAdapter);
+                pickupLocationEditText.setThreshold(2); // Mostrar sugerencias después de 2 caracteres
+            }
+
+            if (destinationEditText != null) {
+                destinationEditText.setAdapter(destinationAdapter);
+                destinationEditText.setThreshold(2); // Mostrar sugerencias después de 2 caracteres
+            }
+        } catch (Exception e) {
+            Log.e(TAG, "Error inicializando Places API", e);
+        }
+    }
+
+    // Método para obtener el bias de localización para Colombia
+    private LocationBias getColombiaLocationBias() {
+        // Coordenadas aproximadas de Colombia (centro)
+        LatLng colombiaCenter = new LatLng(4.5709, -74.2973);
+
+        // Radio que cubre aproximadamente Colombia (en metros)
+        double radiusInMeters = 500000; // 500 km
+
+        return RectangularBounds.newInstance(
+                new LatLng(colombiaCenter.latitude - 5, colombiaCenter.longitude - 5),  // Suroeste
+                new LatLng(colombiaCenter.latitude + 5, colombiaCenter.longitude + 5)   // Noreste
+        );
     }
 
     private void setupListeners() {
         try {
             // Configurar listeners
             if (calculateRouteButton != null) {
-                calculateRouteButton.setOnClickListener(v -> calculateRoute());
+                calculateRouteButton.setOnClickListener(v -> {
+                    calculateRoute();
+                    // Ocultar el panel de búsqueda automáticamente después de calcular ruta
+                    hideSearchPanel();
+                });
             }
 
             if (confirmServiceButton != null) {
@@ -272,6 +331,11 @@ public class RequestServiceActivity extends AppCompatActivity implements OnMapRe
 
             if (cancelServiceButton != null) {
                 cancelServiceButton.setOnClickListener(v -> cancelService());
+            }
+
+            // Botón para mostrar/ocultar panel de búsqueda
+            if (toggleSearchPanelButton != null) {
+                toggleSearchPanelButton.setOnClickListener(v -> toggleSearchPanel());
             }
 
             // Configurar listeners para autocompletado
@@ -293,8 +357,42 @@ public class RequestServiceActivity extends AppCompatActivity implements OnMapRe
                 });
             }
 
+
+
         } catch (Exception e) {
             Log.e("RequestService", "Error configurando listeners", e);
+        }
+    }
+
+    // Añadir estos nuevos métodos para controlar la visibilidad del panel
+    private void toggleSearchPanel() {
+        if (isSearchPanelVisible) {
+            hideSearchPanel();
+        } else {
+            showSearchPanel();
+        }
+    }
+
+
+    private void hideSearchPanel() {
+        if (searchPanelContainer != null) {
+            searchPanelContainer.setVisibility(View.GONE);
+            isSearchPanelVisible = false;
+
+            if (toggleSearchPanelButton != null) {
+                toggleSearchPanelButton.setImageResource(R.drawable.ic_arrow_down);
+            }
+        }
+    }
+
+    private void showSearchPanel() {
+        if (searchPanelContainer != null) {
+            searchPanelContainer.setVisibility(View.VISIBLE);
+            isSearchPanelVisible = true;
+
+            if (toggleSearchPanelButton != null) {
+                toggleSearchPanelButton.setImageResource(R.drawable.ic_arrow_up);
+            }
         }
     }
 
@@ -380,9 +478,48 @@ public class RequestServiceActivity extends AppCompatActivity implements OnMapRe
                 getLastLocation();
             }
 
+            // Añadir listener para clicks largos en el mapa
+            mMap.setOnMapLongClickListener(new GoogleMap.OnMapLongClickListener() {
+                @Override
+                public void onMapLongClick(LatLng latLng) {
+                    showAddressSelectionDialog(latLng);
+                }
+            });
+
         } catch (Exception e) {
             Log.e(TAG, "Error en onMapReady", e);
             Toast.makeText(this, "Error al inicializar el mapa: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    // Método para mostrar el diálogo de selección
+    private void showAddressSelectionDialog(final LatLng latLng) {
+        try {
+            // Convertir coordenadas a dirección
+            getAddressFromLocation(latLng.latitude, latLng.longitude, address -> {
+                // Crear y mostrar diálogo
+                AlertDialog.Builder builder = new AlertDialog.Builder(RequestServiceActivity.this);
+                builder.setTitle("Seleccionar como")
+                        .setMessage("¿Quieres usar este lugar (" + address + ") como origen o destino?")
+                        .setPositiveButton("Destino", (dialog, which) -> {
+                            // Establecer como destino
+                            destinationLatLng = latLng;
+                            destinationAddress = address;
+                            destinationEditText.setText(address);
+                            updateMapWithMarkers();
+                        })
+                        .setNegativeButton("Origen", (dialog, which) -> {
+                            // Establecer como origen
+                            originLatLng = latLng;
+                            originAddress = address;
+                            pickupLocationEditText.setText(address);
+                            updateMapWithMarkers();
+                        })
+                        .setNeutralButton("Cancelar", (dialog, which) -> dialog.dismiss())
+                        .show();
+            });
+        } catch (Exception e) {
+            Log.e(TAG, "Error mostrando diálogo de selección", e);
         }
     }
 
@@ -420,7 +557,10 @@ public class RequestServiceActivity extends AppCompatActivity implements OnMapRe
                                 // Obtener dirección de la ubicación actual
                                 getAddressFromLocation(location.getLatitude(), location.getLongitude(), address -> {
                                     originAddress = address;
-                                    pickupLocationEditText.setText(address);
+                                    // Asignar automáticamente como origen
+                                    if (pickupLocationEditText != null) {
+                                        pickupLocationEditText.setText(address);
+                                    }
                                 });
 
                                 // Actualizar mapa con la ubicación obtenida
@@ -429,19 +569,77 @@ public class RequestServiceActivity extends AppCompatActivity implements OnMapRe
                                 }
                             } else {
                                 Log.w(TAG, "getLastLocation devolvió ubicación nula");
-                                Toast.makeText(RequestServiceActivity.this, "No se pudo obtener tu ubicación actual", Toast.LENGTH_SHORT).show();
+                                // Solicitar actualizaciones de ubicación como alternativa
+                                requestLocationUpdates();
                             }
                         })
                         .addOnFailureListener(e -> {
                             Log.e(TAG, "Error obteniendo ubicación", e);
                             Toast.makeText(RequestServiceActivity.this, "Error al obtener ubicación: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                            // Solicitar actualizaciones de ubicación como alternativa
+                            requestLocationUpdates();
                         });
-            } else {
-                Log.w(TAG, "Intentando obtener ubicación sin permisos o con fusedLocationClient nulo");
             }
         } catch (Exception e) {
             Log.e(TAG, "Error en getLastLocation", e);
-            Toast.makeText(this, "Error al acceder a los servicios de ubicación: " + e.getMessage(), Toast.LENGTH_LONG).show();
+        }
+    }
+
+    // Método adicional para solicitar actualizaciones de ubicación
+    private void requestLocationUpdates() {
+        try {
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) ==
+                    PackageManager.PERMISSION_GRANTED && fusedLocationClient != null) {
+
+                // Crear solicitud de ubicación con alta precisión
+                LocationRequest locationRequest = LocationRequest.create()
+                        .setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY)
+                        .setInterval(5000)  // 5 segundos
+                        .setFastestInterval(2000)  // 2 segundos
+                        .setNumUpdates(1);  // Solo necesitamos una actualización
+
+                // Crear callback para recibir ubicación
+                LocationCallback locationCallback = new LocationCallback() {
+                    @Override
+                    public void onLocationResult(LocationResult locationResult) {
+                        if (locationResult == null) {
+                            return;
+                        }
+
+                        for (Location location : locationResult.getLocations()) {
+                            // Usar primera ubicación recibida
+                            currentLocation = location;
+                            originLatLng = new LatLng(location.getLatitude(), location.getLongitude());
+
+                            // Obtener dirección
+                            getAddressFromLocation(location.getLatitude(), location.getLongitude(), address -> {
+                                originAddress = address;
+                                if (pickupLocationEditText != null) {
+                                    pickupLocationEditText.setText(address);
+                                }
+                            });
+
+                            // Actualizar mapa
+                            if (mMap != null) {
+                                updateMapWithCurrentLocation();
+                            }
+
+                            // Solo usamos la primera ubicación
+                            break;
+                        }
+
+                        // Dejar de recibir actualizaciones
+                        fusedLocationClient.removeLocationUpdates(this);
+                    }
+                };
+
+                // Solicitar actualizaciones
+                fusedLocationClient.requestLocationUpdates(
+                        locationRequest, locationCallback, Looper.getMainLooper());
+
+            }
+        } catch (Exception e) {
+            Log.e(TAG, "Error solicitando actualizaciones de ubicación", e);
         }
     }
 
@@ -539,8 +737,17 @@ public class RequestServiceActivity extends AppCompatActivity implements OnMapRe
     private void calculateRoute() {
         try {
             // Validar que tengamos origen y destino
-            if (originLatLng == null || destinationLatLng == null) {
+            boolean originMissing = originLatLng == null || originAddress == null || originAddress.isEmpty();
+            boolean destinationMissing = destinationLatLng == null || destinationAddress == null || destinationAddress.isEmpty();
+
+            if (originMissing && destinationMissing) {
                 Toast.makeText(this, "Por favor selecciona origen y destino", Toast.LENGTH_SHORT).show();
+                return;
+            } else if (originMissing) {
+                Toast.makeText(this, "Por favor selecciona un origen", Toast.LENGTH_SHORT).show();
+                return;
+            } else if (destinationMissing) {
+                Toast.makeText(this, "Por favor selecciona un destino", Toast.LENGTH_SHORT).show();
                 return;
             }
 
@@ -553,8 +760,9 @@ public class RequestServiceActivity extends AppCompatActivity implements OnMapRe
                     destinationLatLng.latitude + "," + destinationLatLng.longitude);
 
             request.mode(TravelMode.DRIVING);
-            request.language("es");
+            request.language("es"); // Asegurarnos de que las indicaciones sean en español
             request.units(com.google.maps.model.Unit.METRIC);
+            request.region("co"); // Añadir región Colombia
 
             // Ejecutar solicitud de manera asíncrona
             request.setCallback(new PendingResult.Callback<DirectionsResult>() {
@@ -570,7 +778,7 @@ public class RequestServiceActivity extends AppCompatActivity implements OnMapRe
                             updateRouteInfo(result.routes[0]);
                             showServiceInfoPanel();
                         } else {
-                            Toast.makeText(RequestServiceActivity.this, "No se pudo calcular la ruta", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(RequestServiceActivity.this, "No se pudo calcular la ruta entre estos puntos", Toast.LENGTH_SHORT).show();
                         }
                     });
                 }
@@ -702,6 +910,9 @@ public class RequestServiceActivity extends AppCompatActivity implements OnMapRe
                 // Ocultar información del conductor
                 if (driverInfoLayout != null) driverInfoLayout.setVisibility(View.GONE);
                 if (driverLoadingProgressBar != null) driverLoadingProgressBar.setVisibility(View.GONE);
+
+                // Ocultar panel de búsqueda para dar más espacio a la visualización del mapa
+                hideSearchPanel();
             }
         } catch (Exception e) {
             Log.e(TAG, "Error mostrando panel de información del servicio", e);
@@ -764,7 +975,7 @@ public class RequestServiceActivity extends AppCompatActivity implements OnMapRe
                         // Actualizar UI para mostrar estado de espera de conductor
                         updateUIForWaitingDriver();
 
-// Escuchar actualizaciones del servicio (para cuando un conductor lo acepte)
+                        // Escuchar actualizaciones del servicio (para cuando un conductor lo acepte)
                         listenForServiceUpdates();
 
                         // Simulación de conductor aceptando el servicio (para fines de demostración)
@@ -790,6 +1001,9 @@ public class RequestServiceActivity extends AppCompatActivity implements OnMapRe
             if (confirmServiceButton != null) {
                 confirmServiceButton.setVisibility(View.GONE);
             }
+
+            // Ocultar panel de búsqueda
+            hideSearchPanel();
 
             // Mostrar botón de cancelar
             if (cancelServiceButton != null) {

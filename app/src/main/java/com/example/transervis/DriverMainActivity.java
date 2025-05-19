@@ -26,6 +26,9 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
+import android.util.Log;
+
+
 public class DriverMainActivity extends AppCompatActivity {
 
     private static final int LOCATION_PERMISSION_REQUEST_CODE = 1;
@@ -200,12 +203,18 @@ public class DriverMainActivity extends AppCompatActivity {
             }
         });
 
-        // Servicio actual
+// Servicio actual
         currentServiceCard.setOnClickListener(view -> {
-            Toast.makeText(DriverMainActivity.this,
-                    "Ver servicio actual próximamente",
-                    Toast.LENGTH_SHORT).show();
-            // TODO: Iniciar CurrentServiceActivity
+            try {
+
+                Intent intent = new Intent(DriverMainActivity.this, CurrentServiceActivity.class);
+                startActivity(intent);
+            } catch (Exception e) {
+                Log.e("DriverMainActivity", "Error al iniciar la vista", e);
+                Toast.makeText(DriverMainActivity.this,
+                        "Error al abrir pantalla de solicitud: " + e.getMessage(),
+                        Toast.LENGTH_SHORT).show();
+            }
         });
 
         // Ganancias

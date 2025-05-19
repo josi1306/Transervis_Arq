@@ -1,4 +1,3 @@
-// PlacesAutoCompleteAdapter.java - Crea este archivo nuevo
 package com.example.transervis;
 
 import android.content.Context;
@@ -17,6 +16,7 @@ import com.google.android.gms.tasks.Task;
 import com.google.android.gms.tasks.Tasks;
 import com.google.android.libraries.places.api.model.AutocompletePrediction;
 import com.google.android.libraries.places.api.model.AutocompleteSessionToken;
+import com.google.android.libraries.places.api.model.LocationBias;
 import com.google.android.libraries.places.api.model.TypeFilter;
 import com.google.android.libraries.places.api.net.FindAutocompletePredictionsRequest;
 import com.google.android.libraries.places.api.net.FindAutocompletePredictionsResponse;
@@ -24,6 +24,7 @@ import com.google.android.libraries.places.api.net.PlacesClient;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -33,12 +34,14 @@ public class PlacesAutoCompleteAdapter extends ArrayAdapter<AutocompletePredicti
     private final PlacesClient placesClient;
     private AutocompleteSessionToken token;
     private LayoutInflater inflater;
+    private LocationBias locationBias;
 
-    public PlacesAutoCompleteAdapter(Context context, PlacesClient placesClient) {
+    public PlacesAutoCompleteAdapter(Context context, PlacesClient placesClient, LocationBias locationBias) {
         super(context, android.R.layout.simple_dropdown_item_1line, new ArrayList<>());
         this.placesClient = placesClient;
         this.token = AutocompleteSessionToken.newInstance();
         this.inflater = LayoutInflater.from(context);
+        this.locationBias = locationBias;
     }
 
     @NonNull
@@ -76,7 +79,7 @@ public class PlacesAutoCompleteAdapter extends ArrayAdapter<AutocompletePredicti
                 FilterResults results = new FilterResults();
 
                 // Skip the autocomplete query if no constraints are given
-                if (constraint == null || constraint.length() < 3) {
+                if (constraint == null || constraint.length() < 2) {
                     return results;
                 }
 
@@ -88,14 +91,18 @@ public class PlacesAutoCompleteAdapter extends ArrayAdapter<AutocompletePredicti
                         FindAutocompletePredictionsRequest.builder()
                                 .setTypeFilter(TypeFilter.ADDRESS)
                                 .setSessionToken(token)
-                                .setQuery(constraint.toString());
+                                .setCountry("CO") // Limitar a Colombia
+                                .setLocationBias(locationBias); // Usar el bias de ubicación
+
+                // Agregar la consulta al final
+                requestBuilder = requestBuilder.setQuery(constraint.toString());
 
                 Task<FindAutocompletePredictionsResponse> responseTask =
                         placesClient.findAutocompletePredictions(requestBuilder.build());
 
                 try {
                     // Wait for the task to complete
-                    Tasks.await(responseTask, 60, TimeUnit.SECONDS);
+                    Tasks.await(responseTask, 30, TimeUnit.SECONDS); // Reducir el timeout
 
                     if (responseTask.isSuccessful()) {
                         FindAutocompletePredictionsResponse response = responseTask.getResult();
