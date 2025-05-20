@@ -40,7 +40,7 @@ public class SignUpActivity extends AppCompatActivity {
         signupName = findViewById(R.id.signup_name);
         signupLastName = findViewById(R.id.signup_lastname);
         signupPhone = findViewById(R.id.signup_phone);
-        roleRadioGroup = findViewById(R.id.role_radio_group);
+
         signupButton = findViewById(R.id.signup_button);
         loginRedirectText = findViewById(R.id.loginRedirectText);
 
@@ -53,18 +53,7 @@ public class SignUpActivity extends AppCompatActivity {
                 String lastName = signupLastName.getText().toString().trim();
                 String phone = signupPhone.getText().toString().trim();
 
-                // Obtener rol seleccionado
-                int selectedRoleId = roleRadioGroup.getCheckedRadioButtonId();
-                String role = "pasajero"; // Valor por defecto
 
-                if (selectedRoleId == R.id.radio_conductor) {
-                    role = "conductor";
-                }
-
-                // Validar campos
-                if (validateFields(email, password, name, lastName)) {
-                    registerUser(email, password, name, lastName, phone, role);
-                }
             }
         });
 

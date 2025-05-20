@@ -178,10 +178,7 @@ public class PassengerMainActivity extends AppCompatActivity {
         profileCard.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Toast.makeText(PassengerMainActivity.this,
-                        "Perfil de usuario próximamente",
-                        Toast.LENGTH_SHORT).show();
-                // TODO: Iniciar ProfileActivity
+                startActivity(new Intent(PassengerMainActivity.this, EdicionPerfil.class));
             }
         });
 

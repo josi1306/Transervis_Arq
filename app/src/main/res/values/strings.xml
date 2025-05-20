@@ -2,4 +2,18 @@
     <string name="app_name">Transervis</string>
     <!-- Reemplaza este valor con tu clave real de Google Maps API -->
     <string name="google_maps_key">AIzaSyCwfzCitP04-i8j3Xy66cIMuKY75nZ9X6U</string>
+
+    <string-array name="tipos_documento">
+        <item>Cédula de ciudadanía</item>
+        <item>Cédula de extranjería</item>
+        <item>Pasaporte</item>
+    </string-array>
+
+    <string-array name="tipos_marca">
+        <item>Nissan</item>
+        <item>Ford</item>
+        <item>Kia</item>
+        <item>Toyota</item>
+        <item>Mazda</item>
+    </string-array>
 </resources>

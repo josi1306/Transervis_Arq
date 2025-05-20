@@ -169,7 +169,7 @@ public class CurrentServiceActivity extends AppCompatActivity implements OnMapRe
             checkLocationPermissions();
 
             // Configurar sonido de notificación
-            notificationSound = MediaPlayer.create(this, R.raw.notification_sound);
+            //notificationSound = MediaPlayer.create(this, R.raw.notification_sound);
 
             // Inicializar lista de puntos de ruta
             routePoints = new ArrayList<>();
