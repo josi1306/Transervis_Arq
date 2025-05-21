@@ -1,18 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@drawable/fondoback"
     tools:context=".EdicionPerfil">
 
-    <androidx.cardview.widget.CardView
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_margin="30dp"
-        app:cardCornerRadius="30dp"
-        app:cardElevation="20dp">
+        android:orientation="vertical"
+        android:padding="16dp">
+
         <!-- Encabezado -->
         <LinearLayout
             android:id="@+id/header"
@@ -20,57 +21,832 @@
             android:layout_height="wrap_content"
             android:orientation="vertical"
             android:padding="24dp"
-            android:background="#9986E1"
+            android:background="@color/lavender"
             android:gravity="center">
+
+            <ImageView
+                android:id="@+id/profileImageView"
+                android:layout_width="100dp"
+                android:layout_height="100dp"
+                android:src="@drawable/baseline_person_24"
+                android:background="@drawable/white_box"
+                android:padding="20dp"
+                android:tint="#FFFFFF" />
 
             <TextView
                 android:id="@+id/textBienvenido"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Perfil del Usuario"
+                android:text="Mi Perfil"
+                android:layout_marginTop="16dp"
                 android:textColor="#FFFFFF"
-                android:textSize="20sp"
+                android:textSize="24sp"
                 android:textStyle="bold" />
 
             <TextView
                 android:id="@+id/textSubtitulo"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Revisa y edita tu información"
+                android:text="Revisa y edita tu información personal"
+                android:textColor="#F0F0F0"
+                android:textSize="16sp"
+                android:layout_marginTop="4dp"/>
+
+            <TextView
+                android:id="@+id/textRolUsuario"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Tipo de usuario: Pasajero"
                 android:textColor="#F0F0F0"
                 android:textSize="14sp"
-                android:layout_marginTop="4dp"/>
+                android:layout_marginTop="8dp"
+                android:background="#33000000"
+                android:padding="4dp"
+                android:paddingStart="12dp"
+                android:paddingEnd="12dp"
+                android:layout_marginBottom="8dp"/>
         </LinearLayout>
 
+        <!-- Tarjeta de información personal -->
+        <androidx.cardview.widget.CardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            app:cardCornerRadius="15dp"
+            app:cardElevation="8dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Información Personal"
+                    android:textSize="18sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/lavender"
+                    android:layout_marginBottom="16dp"/>
+
+                <!-- Nombre -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:layout_marginBottom="16dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Nombre"
+                        android:textStyle="bold"
+                        android:textSize="14sp"
+                        android:textColor="#757575"/>
+
+                    <EditText
+                        android:id="@+id/editTextNombre"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:hint="Tu nombre"
+                        android:enabled="false"
+                        android:background="@drawable/custom_edittext"
+                        android:padding="12dp"/>
+                </LinearLayout>
+
+                <!-- Apellido -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:layout_marginBottom="16dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Apellido"
+                        android:textStyle="bold"
+                        android:textSize="14sp"
+                        android:textColor="#757575"/>
+
+                    <EditText
+                        android:id="@+id/editTextApellido"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:hint="Tu apellido"
+                        android:enabled="false"
+                        android:background="@drawable/custom_edittext"
+                        android:padding="12dp"/>
+                </LinearLayout>
+
+                <!-- Teléfono -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:layout_marginBottom="16dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Teléfono"
+                        android:textStyle="bold"
+                        android:textSize="14sp"
+                        android:textColor="#757575"/>
+
+                    <EditText
+                        android:id="@+id/editTextTelefono"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:hint="Tu número de teléfono"
+                        android:enabled="false"
+                        android:inputType="phone"
+                        android:background="@drawable/custom_edittext"
+                        android:padding="12dp"/>
+                </LinearLayout>
+
+                <!-- Fecha de Nacimiento -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:layout_marginBottom="16dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Fecha de Nacimiento"
+                        android:textStyle="bold"
+                        android:textSize="14sp"
+                        android:textColor="#757575"/>
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal">
+
+                        <EditText
+                            android:id="@+id/editTextFechaNacimiento"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:hint="DD/MM/AAAA"
+                            android:enabled="false"
+                            android:focusable="false"
+                            android:clickable="true"
+                            android:background="@drawable/custom_edittext"
+                            android:padding="12dp"/>
+
+                        <ImageButton
+                            android:id="@+id/btnDatePicker"
+                            android:layout_width="wrap_content"
+                            android:layout_height="match_parent"
+                            android:layout_marginStart="8dp"
+                            android:src="@android:drawable/ic_menu_my_calendar"
+                            android:background="@color/lavender"
+                            android:padding="8dp"
+                            android:enabled="false"/>
+                    </LinearLayout>
+                </LinearLayout>
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
+
+        <!-- Tarjeta de información de identificación -->
+        <androidx.cardview.widget.CardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            app:cardCornerRadius="15dp"
+            app:cardElevation="8dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Identificación"
+                    android:textSize="18sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/lavender"
+                    android:layout_marginBottom="16dp"/>
+
+                <!-- Tipo de Documento -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:layout_marginBottom="16dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Tipo de Documento"
+                        android:textStyle="bold"
+                        android:textSize="14sp"
+                        android:textColor="#757575"/>
+
+                    <Spinner
+                        android:id="@+id/spinnerTipoDocumento"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:background="@drawable/custom_edittext"
+                        android:padding="12dp"
+                        android:enabled="false"/>
+                </LinearLayout>
+
+                <!-- Documento de Identidad -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:layout_marginBottom="16dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Número de Documento"
+                        android:textStyle="bold"
+                        android:textSize="14sp"
+                        android:textColor="#757575"/>
+
+                    <EditText
+                        android:id="@+id/editTextDocumento"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:hint="Tu número de documento"
+                        android:enabled="false"
+                        android:inputType="text"
+                        android:background="@drawable/custom_edittext"
+                        android:padding="12dp"/>
+                </LinearLayout>
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
+
+        <!-- Tarjeta de información de contacto y ubicación -->
+        <androidx.cardview.widget.CardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            app:cardCornerRadius="15dp"
+            app:cardElevation="8dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Contacto y Ubicación"
+                    android:textSize="18sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/lavender"
+                    android:layout_marginBottom="16dp"/>
+
+                <!-- Ciudad de Residencia -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:layout_marginBottom="16dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Ciudad de Residencia"
+                        android:textStyle="bold"
+                        android:textSize="14sp"
+                        android:textColor="#757575"/>
+
+                    <EditText
+                        android:id="@+id/editTextCiudad"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:hint="Ciudad donde vives"
+                        android:enabled="false"
+                        android:background="@drawable/custom_edittext"
+                        android:padding="12dp"/>
+                </LinearLayout>
+
+                <!-- Dirección -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:layout_marginBottom="16dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Dirección"
+                        android:textStyle="bold"
+                        android:textSize="14sp"
+                        android:textColor="#757575"/>
+
+                    <EditText
+                        android:id="@+id/editTextDireccion"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:hint="Tu dirección"
+                        android:enabled="false"
+                        android:background="@drawable/custom_edittext"
+                        android:padding="12dp"/>
+                </LinearLayout>
+
+                <!-- Género -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:layout_marginBottom="16dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Género"
+                        android:textStyle="bold"
+                        android:textSize="14sp"
+                        android:textColor="#757575"/>
+
+                    <Spinner
+                        android:id="@+id/spinnerGenero"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:background="@drawable/custom_edittext"
+                        android:padding="12dp"
+                        android:enabled="false"/>
+                </LinearLayout>
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
+
+        <!-- Sección específica para conductores - Licencia -->
+        <androidx.cardview.widget.CardView
+            android:id="@+id/cardViewLicencia"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            app:cardCornerRadius="15dp"
+            app:cardElevation="8dp"
+            android:visibility="gone">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Información de Licencia de Conducción"
+                    android:textSize="18sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/lavender"
+                    android:layout_marginBottom="16dp"/>
+
+                <!-- Número de Licencia -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:layout_marginBottom="16dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Número de Licencia"
+                        android:textStyle="bold"
+                        android:textSize="14sp"
+                        android:textColor="#757575"/>
+
+                    <EditText
+                        android:id="@+id/editTextLicencia"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:hint="Número de licencia de conducción"
+                        android:enabled="false"
+                        android:background="@drawable/custom_edittext"
+                        android:padding="12dp"/>
+                </LinearLayout>
+
+                <!-- Categoría de Licencia -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:layout_marginBottom="16dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Categoría de Licencia"
+                        android:textStyle="bold"
+                        android:textSize="14sp"
+                        android:textColor="#757575"/>
+
+                    <Spinner
+                        android:id="@+id/spinnerCategoriaLicencia"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:background="@drawable/custom_edittext"
+                        android:padding="12dp"
+                        android:enabled="false"/>
+                </LinearLayout>
+
+                <!-- Fecha de Expedición -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:layout_marginBottom="16dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Fecha de Expedición"
+                        android:textStyle="bold"
+                        android:textSize="14sp"
+                        android:textColor="#757575"/>
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal">
+
+                        <EditText
+                            android:id="@+id/editTextFechaExpedicion"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:hint="DD/MM/AAAA"
+                            android:enabled="false"
+                            android:focusable="false"
+                            android:clickable="true"
+                            android:background="@drawable/custom_edittext"
+                            android:padding="12dp"/>
+
+                        <ImageButton
+                            android:id="@+id/btnExpedicionPicker"
+                            android:layout_width="wrap_content"
+                            android:layout_height="match_parent"
+                            android:layout_marginStart="8dp"
+                            android:src="@android:drawable/ic_menu_my_calendar"
+                            android:background="@color/lavender"
+                            android:padding="8dp"
+                            android:enabled="false"/>
+                    </LinearLayout>
+                </LinearLayout>
+
+                <!-- Fecha de Vencimiento -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:layout_marginBottom="16dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Fecha de Vencimiento"
+                        android:textStyle="bold"
+                        android:textSize="14sp"
+                        android:textColor="#757575"/>
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal">
+
+                        <EditText
+                            android:id="@+id/editTextFechaVencimiento"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:hint="DD/MM/AAAA"
+                            android:enabled="false"
+                            android:focusable="false"
+                            android:clickable="true"
+                            android:background="@drawable/custom_edittext"
+                            android:padding="12dp"/>
+
+                        <ImageButton
+                            android:id="@+id/btnVencimientoPicker"
+                            android:layout_width="wrap_content"
+                            android:layout_height="match_parent"
+                            android:layout_marginStart="8dp"
+                            android:src="@android:drawable/ic_menu_my_calendar"
+                            android:background="@color/lavender"
+                            android:padding="8dp"
+                            android:enabled="false"/>
+                    </LinearLayout>
+                </LinearLayout>
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
+
+        <!-- Sección específica para conductores - Vehículo -->
+        <androidx.cardview.widget.CardView
+            android:id="@+id/cardViewVehiculo"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            app:cardCornerRadius="15dp"
+            app:cardElevation="8dp"
+            android:visibility="gone">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Información del Vehículo"
+                    android:textSize="18sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/lavender"
+                    android:layout_marginBottom="16dp"/>
+
+                <!-- Placa del Vehículo -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:layout_marginBottom="16dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Placa del Vehículo"
+                        android:textStyle="bold"
+                        android:textSize="14sp"
+                        android:textColor="#757575"/>
+
+                    <EditText
+                        android:id="@+id/editTextPlaca"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:hint="Placa (ej. ABC123)"
+                        android:enabled="false"
+                        android:inputType="textCapCharacters"
+                        android:background="@drawable/custom_edittext"
+                        android:padding="12dp"/>
+                </LinearLayout>
+
+                <!-- Marca -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:layout_marginBottom="16dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Marca del Vehículo"
+                        android:textStyle="bold"
+                        android:textSize="14sp"
+                        android:textColor="#757575"/>
+
+                    <Spinner
+                        android:id="@+id/spinnerMarcaVehiculo"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:background="@drawable/custom_edittext"
+                        android:padding="12dp"
+                        android:enabled="false"/>
+                </LinearLayout>
+
+                <!-- Modelo -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:layout_marginBottom="16dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Modelo del Vehículo"
+                        android:textStyle="bold"
+                        android:textSize="14sp"
+                        android:textColor="#757575"/>
+
+                    <EditText
+                        android:id="@+id/editTextModelo"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:hint="Modelo o referencia"
+                        android:enabled="false"
+                        android:background="@drawable/custom_edittext"
+                        android:padding="12dp"/>
+                </LinearLayout>
+
+                <!-- Capacidad de Pasajeros -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:layout_marginBottom="16dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Capacidad de Pasajeros (mínimo 8)"
+                        android:textStyle="bold"
+                        android:textSize="14sp"
+                        android:textColor="#757575"/>
+
+                    <EditText
+                        android:id="@+id/editTextCapacidad"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:hint="Número de pasajeros"
+                        android:enabled="false"
+                        android:inputType="number"
+                        android:background="@drawable/custom_edittext"
+                        android:padding="12dp"/>
+                </LinearLayout>
+
+                <!-- Tipo de Vehículo -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:layout_marginBottom="16dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Tipo de Vehículo"
+                        android:textStyle="bold"
+                        android:textSize="14sp"
+                        android:textColor="#757575"/>
+
+                    <Spinner
+                        android:id="@+id/spinnerTipoVehiculo"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:background="@drawable/custom_edittext"
+                        android:padding="12dp"
+                        android:enabled="false"/>
+                </LinearLayout>
+
+                <!-- SOAT -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:layout_marginBottom="16dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="SOAT"
+                        android:textStyle="bold"
+                        android:textSize="14sp"
+                        android:textColor="#757575"/>
+
+                    <CheckBox
+                        android:id="@+id/checkBoxSoat"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="SOAT Vigente"
+                        android:enabled="false"/>
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:layout_marginTop="8dp">
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="Adjuntar SOAT (PDF)"
+                            android:textSize="14sp"/>
+
+                        <Button
+                            android:id="@+id/btnAdjuntarSoat"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Seleccionar"
+                            android:backgroundTint="@color/lavender"
+                            android:enabled="false"/>
+                    </LinearLayout>
+
+                    <TextView
+                        android:id="@+id/textViewSoatFileName"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="No hay archivo seleccionado"
+                        android:textSize="12sp"
+                        android:textStyle="italic"
+                        android:layout_marginTop="4dp"/>
+                </LinearLayout>
+
+                <!-- Tecnicomecanica -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:layout_marginBottom="16dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Revisión Tecnicomecanica"
+                        android:textStyle="bold"
+                        android:textSize="14sp"
+                        android:textColor="#757575"/>
+
+                    <CheckBox
+                        android:id="@+id/checkBoxTecnomecanica"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Tecnicomecanica Vigente"
+                        android:enabled="false"/>
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:layout_marginTop="8dp">
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="Adjuntar Tecnicomecanica (PDF)"
+                            android:textSize="14sp"/>
+
+                        <Button
+                            android:id="@+id/btnAdjuntarTecnomecanica"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Seleccionar"
+                            android:backgroundTint="@color/lavender"
+                            android:enabled="false"/>
+                    </LinearLayout>
+
+                    <TextView
+                        android:id="@+id/textViewTecnomecanicaFileName"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="No hay archivo seleccionado"
+                        android:textSize="12sp"
+                        android:textStyle="italic"
+                        android:layout_marginTop="4dp"/>
+                </LinearLayout>
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
+
+        <!-- Botones -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_gravity="center_horizontal"
-            android:background="@drawable/custom_edittext"
             android:orientation="vertical"
-            android:padding="24dp">
+            android:layout_marginTop="24dp"
+            android:layout_marginBottom="24dp">
 
-
-            <!-- Tarjetas de información -->
-            <include layout="@layout/item_perfil"
-                android:id="@+id/cardNombre"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="100dp"
-                 />
-
-            <!-- Botón inferior -->
             <Button
                 android:id="@+id/btnEditarPerfil"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
+                android:layout_height="60dp"
                 android:text="Editar Perfil"
-                android:textColor="#FFFFFF"
-                android:backgroundTint="#9986E1"
-                android:layout_alignParentBottom="true"
-                android:layout_margin="24dp"
-                android:layout_centerHorizontal="true"/>
+                android:textSize="16sp"
+                android:backgroundTint="@color/lavender"
+                app:cornerRadius="20dp"/>
 
+            <Button
+                android:id="@+id/btnGuardarPerfil"
+                android:layout_width="match_parent"
+                android:layout_height="60dp"
+                android:text="Guardar Cambios"
+                android:textSize="16sp"
+                android:backgroundTint="#4CAF50"
+                app:cornerRadius="20dp"
+                android:visibility="gone"/>
+
+            <Button
+                android:id="@+id/btnCancelar"
+                android:layout_width="match_parent"
+                android:layout_height="60dp"
+                android:text="Cancelar"
+                android:textSize="16sp"
+                android:backgroundTint="#FF5252"
+                app:cornerRadius="20dp"
+                android:layout_marginTop="8dp"
+                android:visibility="gone"/>
         </LinearLayout>
-    </androidx.cardview.widget.CardView>
-</LinearLayout>
+    </LinearLayout>
+</ScrollView>

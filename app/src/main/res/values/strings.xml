@@ -16,4 +16,33 @@
         <item>Toyota</item>
         <item>Mazda</item>
     </string-array>
+
+    <string-array name="generos">
+        <item>Seleccionar</item>
+        <item>Masculino</item>
+        <item>Femenino</item>
+        <item>Otro</item>
+        <item>Prefiero no decir</item>
+    </string-array>
+
+    <!-- Nuevos arrays para conductores -->
+    <string-array name="categorias_licencia">
+        <item>Seleccionar</item>
+        <item>A1</item>
+        <item>A2</item>
+        <item>B1</item>
+        <item>B2</item>
+        <item>B3</item>
+        <item>C1</item>
+        <item>C2</item>
+        <item>C3</item>
+    </string-array>
+
+    <string-array name="tipos_vehiculo">
+        <item>Seleccionar</item>
+        <item>Van</item>
+        <item>Microbus</item>
+        <item>Buseta</item>
+        <item>Bus</item>
+    </string-array>
 </resources>

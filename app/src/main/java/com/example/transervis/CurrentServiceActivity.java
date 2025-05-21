@@ -53,6 +53,8 @@ import com.google.firebase.firestore.GeoPoint;
 import com.google.firebase.firestore.ListenerRegistration;
 import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
+import com.google.firebase.firestore.FieldValue;
+import java.util.List;
 
 import java.io.IOException;
 import java.text.DecimalFormat;
@@ -498,6 +500,13 @@ public class CurrentServiceActivity extends AppCompatActivity implements OnMapRe
 
                     for (QueryDocumentSnapshot doc : queryDocumentSnapshots) {
                         try {
+                            // Check if the current driver has already rejected this service
+                            List<String> rejectedByDrivers = (List<String>) doc.get("rejectedByDrivers");
+                            if (rejectedByDrivers != null && rejectedByDrivers.contains(currentDriverId)) {
+                                // Skip this service if current driver has already rejected it
+                                continue;
+                            }
+
                             // Obtener coordenadas de recogida
                             GeoPoint pickupCoordinates = doc.getGeoPoint("pickupCoordinates");
 
@@ -908,24 +917,51 @@ public class CurrentServiceActivity extends AppCompatActivity implements OnMapRe
     }
 
     private void rejectService() {
-        // Ocultar tarjeta de solicitud
-        serviceRequestCard.setVisibility(View.GONE);
-
-        // Limpiar mapa
-        if (mMap != null) {
-            mMap.clear();
-
-            // Si hay ruta definida, redibujarla
-            if (!routePoints.isEmpty() && routePoints.size() >= 2) {
-                drawRoute();
-            }
+        if (currentServiceId == null || currentServiceId.isEmpty()) {
+            // Just hide UI if no valid service ID
+            serviceRequestCard.setVisibility(View.GONE);
+            startPassengerSearch();
+            return;
         }
 
-        // Actualizar estado
-        serviceStatusText.setText("Solicitud rechazada - Buscando nuevos pasajeros...");
+        // Show progress
+        loadingProgressBar.setVisibility(View.VISIBLE);
 
-        // Continuar con la búsqueda
-        startPassengerSearch();
+        // Track this rejection in Firestore by adding the driver's ID to a 'rejectedByDrivers' array
+        db.collection("services").document(currentServiceId)
+                .update("rejectedByDrivers", FieldValue.arrayUnion(currentDriverId))
+                .addOnSuccessListener(aVoid -> {
+                    // Operation successful, hide UI components
+                    serviceRequestCard.setVisibility(View.GONE);
+                    loadingProgressBar.setVisibility(View.GONE);
+
+                    // Limpiar mapa
+                    if (mMap != null) {
+                        mMap.clear();
+
+                        // Si hay ruta definida, redibujarla
+                        if (!routePoints.isEmpty() && routePoints.size() >= 2) {
+                            drawRoute();
+                        }
+                    }
+
+                    // Actualizar estado
+                    serviceStatusText.setText("Solicitud rechazada - Buscando nuevos pasajeros...");
+
+                    // Continuar con la búsqueda
+                    startPassengerSearch();
+                })
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "Error rechazando servicio", e);
+                    loadingProgressBar.setVisibility(View.GONE);
+                    Toast.makeText(CurrentServiceActivity.this,
+                            "Error al rechazar el servicio: " + e.getMessage(),
+                            Toast.LENGTH_SHORT).show();
+
+                    // Continue search even if rejection fails
+                    serviceRequestCard.setVisibility(View.GONE);
+                    startPassengerSearch();
+                });
     }
 
     private void navigateToPickup() {

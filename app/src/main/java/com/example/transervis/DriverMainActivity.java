@@ -46,6 +46,8 @@ public class DriverMainActivity extends AppCompatActivity {
     private CardView currentServiceCard, earningsCard, ratingsCard, historyCard;
     private Button logoutButton;
     private boolean isAvailable = false;
+    private CardView profileCard;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -78,6 +80,7 @@ public class DriverMainActivity extends AppCompatActivity {
         ratingsCard = findViewById(R.id.ratingsCard);
         historyCard = findViewById(R.id.historyCard);
         logoutButton = findViewById(R.id.logoutButtonDriver);
+        profileCard = findViewById(R.id.profileCard);
     }
 
     private void checkCurrentUser() {
@@ -267,6 +270,14 @@ public class DriverMainActivity extends AppCompatActivity {
                     "Ver historial próximamente",
                     Toast.LENGTH_SHORT).show();
             // TODO: Iniciar HistoryActivity
+        });
+
+        // Perfil
+        profileCard.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                startActivity(new Intent(DriverMainActivity.this, EdicionPerfil.class));
+            }
         });
 
         // Cerrar sesión
